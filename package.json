@@ -1,0 +1,32 @@
+{
+  "name": "emblem",
+  "version": "0.1.0",
+  "description": "Server / Client library for HTML5 wealtime multiplayer games.",
+  "keywords": [
+    "html5",
+    "multiplayer",
+    "server",
+    "client",
+    "games",
+    "realtime",
+    "websockets"
+  ],
+  "main": "index.js",
+  "author": "Ivo Wetzel <ivo.wetzel@googlemail.com> (https://github.com/BonsaiDen)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BonsaiDen/emblem"
+  },
+  "bugs": {
+    "url": "https://github.com/BonsaiDen/emblem/issues"
+  },
+  "dependencies": {
+    "lithium": "~0.1.1",
+    "bisonjs": "~2.0.0"
+  },
+  "engines": {
+    "node": ">=0.8",
+    "npm": ">= 1"
+  },
+  "license": "MIT"
+}
