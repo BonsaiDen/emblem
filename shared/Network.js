@@ -39,12 +39,21 @@ var Network = Class(function(parent) {
     },
 
     $Server: {
+        Ping: 5,
         Init: 20,
         Stats: 21
     },
 
     $Client: {
+        Ping: 6,
         Login: 30
+    },
+
+    $Ping: {
+        Range: 100000,
+        BufferSize: 12,
+        Interval: 2500,
+        MaxRoundTrip: 5000
     },
 
 
@@ -55,7 +64,7 @@ var Network = Class(function(parent) {
 
     update: function() {
         for(var i = 0, l = this.messageQueue.length; i < l; i++) {
-            this.message.apply(this, this.messageQueue[i]);
+            this.bufferedMessage.apply(this, this.messageQueue[i]);
         }
         this.messageQueue.length = 0;
     },
@@ -72,15 +81,28 @@ var Network = Class(function(parent) {
     },
 
     connection: function(remote) {
-        remote.on('message', this.bufferMessage.bind(this, remote));
+        remote.on('message', this.validateMessage.bind(this, remote));
         remote.on('close', this.close.bind(this, remote));
         this.log('Connected', remote.toString());
         this.parent.connection(remote);
     },
 
-    bufferMessage: function(remote, msg) {
-        // TODO Validate message structure
-        this.messageQueue.push([remote, msg[0], msg[1]]);
+    validateMessage: function(remote, msg) {
+
+        if (msg === undefined || !(msg instanceof Array) || msg.length !== 2) {
+            this.log(remote.toString(), 'Invalid Message:', msg);
+
+        } else if (typeof msg[0] !== 'number' || (msg[0] | 0) !== msg[0]) {
+            this.log(remote.toString(), 'Invalid Message Type:', msg);
+
+        } else {
+            this.message(remote, msg[0], msg[1]);
+        }
+
+    },
+
+    message: function(remote, type, data) {
+        this.messageQueue.push([remote, type, data]);
     }
 
 });

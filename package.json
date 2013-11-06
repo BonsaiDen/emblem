@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "lithium": "~0.1.1",
-    "bisonjs": "~2.0.0"
+    "bisonjs": "~2.0.1"
   },
   "engines": {
     "node": ">=0.8",

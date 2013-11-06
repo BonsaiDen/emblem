@@ -40,6 +40,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
     // Synchronization tick mapping to the state buffer index
     this._tick = 0;
+    this._remoteTick = 0;
 
     // List of the last Entity.StateBufferSize serialized states
     this._stateBuffer = [];
@@ -135,6 +136,19 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
         }
     },
 
+    projectState: function(block, scope) {
+
+        var frameDiff = this._tick - this._remoteTick;
+        if (frameDiff < 0) {
+            frameDiff += Entity.StateBufferSize;
+        }
+
+        // TODO get tick diff between local and remote
+        // TODO Temporarily set all entities to the calculated remove state
+        // run block and pass entities
+        // TODO reset the entities (make sure they are still valid though!)
+    },
+
 
     // Methods ----------------------------------------------------------------
     update: function(time, u) {
@@ -211,6 +225,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     // Network ----------------------------------------------------------------
     updateState: function(state, correctPosition) {
 
+        this._remoteTick = state[1];
         this._remoteVector.set(state[3], state[4], state[2]);
 
         if (correctPosition) {
@@ -237,7 +252,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
                 // Calculate the number of frames of difference between
                 // client and server
-                var frameDiff = this._tick - state[1];
+                var frameDiff = this._tick - this._remoteTick;
                 if (frameDiff < 0) {
                     frameDiff += Entity.StateBufferSize;
                 }

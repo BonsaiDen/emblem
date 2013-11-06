@@ -24,11 +24,16 @@ var Network = Class(function(parent) {
             BISON.decode
         );
 
+        // Connect and send initial ping
         this.socket.connect(port, host);
+        this.socket.send([
+            Network.Client.Ping, Date.now() % Network.Ping.Range,
+            0
+        ]);
 
     },
 
-    message: function(client, type, data) {
+    bufferedMessage: function(client, type, data) {
 
         // Player
         if (type === Network.Player.Join.Local) {
@@ -42,6 +47,7 @@ var Network = Class(function(parent) {
 
         // Other
         } else {
+            // TODO forward to local player if left unhandled?
             this.parent.message(client, type, data);
         }
 
@@ -49,17 +55,22 @@ var Network = Class(function(parent) {
 
 
     // Network Events ---------------------------------------------------------
-    bufferMessage: function(remote, msg) {
+    message: function(remote, type, data) {
 
-        // Initialization
-        // TODO this is ugly... should not directly call the client here
-        // move to message buffer and allow to skip any futher messages
-        // from processing?
-        if (msg[0] === Network.Server.Init) {
-            this.parent.start(msg[1]);
+        if (type === Network.Server.Init) {
+            this.parent.start(data);
+
+        // Ping
+        } else if (type === Network.Server.Ping) {
+            this.socket.send([
+                Network.Client.Ping, [
+                    Date.now() % Network.Ping.Range,
+                    Math.round((Date.now() - data) % Network.Ping.Range)
+                ]
+            ]);
 
         } else {
-            BaseNetwork.bufferMessage(this, remote, msg);
+            BaseNetwork.message(this, remote, type, data);
         }
 
     },
