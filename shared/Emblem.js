@@ -3,6 +3,8 @@ var Class = require('./lib/Class').Class,
     Component = require('./Component').Component,
     Loop = require('./Loop').Loop;
 
+"use strict";
+
 
 // Shared Client / Server Logic -----------------------------------------------
 var Emblem = Class(function(gameClass) {
@@ -43,24 +45,28 @@ var Emblem = Class(function(gameClass) {
     update: function(type, time, u) {
 
         if (type === Loop.Update.Normal) {
-            this.network.update(time, u);
-            this.entityManager.update(time, u);
-            this.game.update(time, u);
+            this.network.update(type, time, u);
+            this.entityManager.update(type, time, u);
+            this.game.update(type, time, u);
             this.entityManager.send();
         }
 
     },
 
     destroy: function() {
-        this.game && this.game.destroy();
-        this.entityManager && this.entityManager.destroy();
-        this.network && this.network.destroy();
         this.loop && this.loop.stop();
+        this.network && this.network.destroy();
+        this.entityManager && this.entityManager.destroy();
+        this.game && this.game.destroy();
         this.log('Stopped');
     },
 
 
     // Network ----------------------------------------------------------------
+    connection: function(client) {
+        this.game.connection(client);
+    },
+
     send: function(type, msg) {
         this.network.send(type, msg);
     },

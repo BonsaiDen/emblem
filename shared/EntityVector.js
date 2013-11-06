@@ -1,3 +1,5 @@
+"use strict";
+
 // Custom 2D Vector for Entities ----------------------------------------------
 function EntityVector(x, y, r) {
     this.x = x || 0; // In pixels

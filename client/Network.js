@@ -6,6 +6,8 @@ var Class = require('../shared/lib/Class').Class,
     lithium = require('lithium/client/lithium').lithium,
     BISON = require('bisonjs');
 
+"use strict";
+
 
 // Client Side Network Abstraction --------------------------------------------
 var Network = Class(function(parent) {
@@ -42,13 +44,30 @@ var Network = Class(function(parent) {
         } else if (type === Network.Player.Join.Remote) {
             this.parent.addPlayer(data, true);
 
+        } else if (type === Network.Player.Ping) {
+            var player = this.parent.getPlayerById(data[0]);
+            player && player.setPing(data[1]);
+
         } else if (type === Network.Player.Leave) {
             this.parent.removePlayer(data[0]);
 
+        } else if (type === Network.Server.Stats) {
+            console.log(data);
+
         // Other
         } else {
-            // TODO forward to local player if left unhandled?
-            this.parent.message(client, type, data);
+
+            if (!this.parent.message(client, type, data)) {
+
+                // Forward to local players if left unhandled
+                this.parent.getPlayers().each(function(player) {
+                    if (player.isLocal()) {
+                        player.message(type, data);
+                    }
+                });
+
+            }
+
         }
 
     },

@@ -2,6 +2,8 @@
 var Class = require('./lib/Class').Class,
     Component = require('./Component').Component;
 
+"use strict";
+
 
 // Network Interface ----------------------------------------------------------
 var Network = Class(function(parent) {
@@ -26,6 +28,8 @@ var Network = Class(function(parent) {
     },
 
     $Player: {
+
+        Ping: 7,
 
         Join: {
             Local: 10,

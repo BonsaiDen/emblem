@@ -7,6 +7,8 @@ var Class = require('../shared/lib/Class').Class,
     Network = require('./Network').Network,
     EntityManager = require('./EntityManager').EntityManager;
 
+"use strict";
+
 
 // Top Level Server Logic -----------------------------------------------------
 var Server = Class(function(gameClass) {
@@ -35,17 +37,7 @@ var Server = Class(function(gameClass) {
         );
         this.loop.start();
 
-        this.log('Started');
-
-    },
-
-    update: function(type, time, u) {
-
-        Emblem.update(this, type, time, u);
-
-        if (type === Loop.Update.Tick) {
-            this.send(Network.Server.Stats, this.network.getStats());
-        }
+        this.log('Started', process.pid);
 
     },
 
@@ -73,7 +65,7 @@ var Server = Class(function(gameClass) {
             remote.send([Network.Player.Join.Remote, player.getState(true)]);
         });
 
-        this.game.connection(remote);
+        Emblem.connection(this, remote);
         this.entityManager.init(remote);
 
     },
@@ -85,7 +77,7 @@ var Server = Class(function(gameClass) {
             return true;
 
         } else {
-            this.game.message(remote, type, data);
+            return this.game.message(remote, type, data);
         }
 
     },

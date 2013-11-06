@@ -4,6 +4,8 @@ var Class = require('./lib/Class').Class,
     IdPool = require('./lib/IdPool').IdPool,
     Component = require('./Component').Component;
 
+"use strict";
+
 
 // Shared Player Logic --------------------------------------------------------
 var Player = Class(function(parent, isRemote) {
@@ -15,6 +17,9 @@ var Player = Class(function(parent, isRemote) {
 
     // Whether the player is remote or not
     this._isRemote = isRemote;
+
+    // Ping of the remote associated with this player
+    this._ping = 0;
 
     // Entities owned by the player
     this.entities = new HashList();
@@ -50,10 +55,26 @@ var Player = Class(function(parent, isRemote) {
         return this._isRemote;
     },
 
+    isLocal: function() {
+        return !this._isRemote;
+    },
+
+    getPing: function() {
+        return this._ping;
+    },
+
+    setPing: function(ping) {
+        this._ping = ping;
+    },
+
 
     // Entities ---------------------------------------------------------------
     addEntity: function(entity) {
         return this.entities.add(entity);
+    },
+
+    getEntities: function() {
+        return this.entities;
     },
 
     removeEntity: function(entity) {

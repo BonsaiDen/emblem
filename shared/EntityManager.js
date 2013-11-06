@@ -4,6 +4,8 @@ var Class = require('./lib/Class').Class,
     Component = require('./Component').Component,
     Network = require('./Network').Network;
 
+"use strict";
+
 
 // Entity State Manager -------------------------------------------------------
 var EntityManager = Class(function(parent) {
@@ -26,9 +28,9 @@ var EntityManager = Class(function(parent) {
         });
     },
 
-    update: function(time, u) {
+    update: function(type, time, u) {
         this.entities.each(function(entity) {
-            entity.update(time, u);
+            entity.update(type, time, u);
         });
     },
 
@@ -45,7 +47,7 @@ var EntityManager = Class(function(parent) {
 
         }, this);
 
-        this.entities.clear();
+        this.entities.destroy();
         this.messages.length = 0;
 
     },

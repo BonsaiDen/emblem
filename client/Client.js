@@ -7,6 +7,8 @@ var Class = require('../shared/lib/Class').Class,
     Network = require('./Network').Network,
     EntityManager = require('./EntityManager').EntityManager;
 
+"use strict";
+
 
 // Top Level Client Logic -----------------------------------------------------
 var Client = Class(function(gameClass) {
@@ -60,30 +62,30 @@ var Client = Class(function(gameClass) {
 
 
     // Network ----------------------------------------------------------------
-    connection: function(client) {
-        this.game.connection(client);
-    },
-
     message: function(remote, type, data) {
 
         // Entities
         if (type === Network.Entity.Add) {
             var added = this.entityManager.addEntity(data);
             added && this.game.addEntity(added);
+            return true;
 
         } else if (type === Network.Entity.Owner) {
             this.entityManager.setEntityOwner(data);
+            return true;
 
         } else if (type === Network.Entity.Update) {
             this.entityManager.updateEntity(data);
+            return true;
 
         } else if (type === Network.Entity.Remove) {
             var removed = this.entityManager.removeEntity(data);
             removed && this.game.removeEntity(removed);
+            return true;
 
         // Other
         } else {
-            this.game.message(remote, type, data);
+            return this.game.message(remote, type, data);
         }
 
     },

@@ -1,3 +1,5 @@
+"use strict";
+
 // Hash List Utility Class -----------------------------------------------------
 function HashList(max) {
     this.maximum = max || -1;
@@ -12,6 +14,12 @@ HashList.prototype = {
     clear: function() {
         this.hash = new Object();
         this.items = [];
+        this.length = 0;
+    },
+
+    destroy: function() {
+        this.hash = null;
+        this.items = null;
         this.length = 0;
     },
 
@@ -60,7 +68,6 @@ HashList.prototype = {
     add: function(obj) {
 
         if (!this.has(obj) && !this.isFull()) {
-
             this.hash[obj.id] = obj;
             this.items.push(obj);
             this.length++;
@@ -68,6 +75,7 @@ HashList.prototype = {
             return obj;
 
         } else {
+            console.warn('(HashList) Add of contained object', obj);
             return false;
         }
 
@@ -98,6 +106,7 @@ HashList.prototype = {
             return obj;
 
         } else {
+            console.warn('(HashList) Remove of uncontained object', obj);
             return false;
         }
 

@@ -4,6 +4,8 @@ var Class = require('./lib/Class').Class,
     Component = require('./Component').Component,
     Entity = require('./Entity').Entity;
 
+"use strict";
+
 
 // Shared Game Logic ----------------------------------------------------------
 var Game = Class(function(parent) {
@@ -32,15 +34,15 @@ var Game = Class(function(parent) {
         this.players = new HashList();
     },
 
-    update: function(time, u) {
+    update: function(type, time, u) {
         this.players.each(function(player) {
-            player.update(time, u);
+            player.update(type, time, u);
         });
     },
 
     destroy: function() {
         this.config = null;
-        this.players.clear();
+        this.players.destroy();
     },
 
 

@@ -2,10 +2,13 @@
 var Class = require('../shared/lib/Class').Class,
     HashList = require('../shared/lib/HashList').HashList,
     BaseNetwork = require('../shared/Network').Network,
+    Loop = require('../shared/Loop').Loop,
 
     // External
     lithium = require('lithium'),
     BISON = require('bisonjs');
+
+"use strict";
 
 
 // Server Side Network Abstraction --------------------------------------------
@@ -35,6 +38,29 @@ var Network = Class(function(parent) {
 
     },
 
+    update: function(type, time, u) {
+
+        if (type === Loop.Update.Tick) {
+
+            var bytesSend = 0,
+                bytesReceived = 0;
+
+            this._remotes.each(function(remote) {
+                bytesSend += remote.bytesSend;
+                bytesReceived += remote.bytesReceived;
+                remote.bytesSend = 0;
+                remote.bytesReceived = 0;
+
+            }, this);
+
+            this.send(Network.Server.Stats, [bytesSend, bytesReceived]);
+
+        }
+
+        BaseNetwork.update(this, type, u);
+
+    },
+
     bufferedMessage: function(remote, type, data) {
 
         if (type === Network.Client.Login) {
@@ -42,10 +68,12 @@ var Network = Class(function(parent) {
 
         } else {
             if (!this.parent.message(remote, type, data)) {
-                // TODO replicate on client
+
+                // Forward to player if left unhandled
                 if (remote.player) {
                     remote.player.message(type, data);
                 }
+
             }
         }
 
@@ -88,19 +116,21 @@ var Network = Class(function(parent) {
                     }));
 
                 // Store Ping and clock offset of the remote
-                ping.ping = value;
+                ping.value = value;
                 ping.offset = offset;
 
-                this.log(remote.toString(), '(Ping ' + value+ 'ms, Offset ' + offset + 'ms)');
+                this.log(remote.toString(), '(Ping ' + value + 'ms, Offset ' + offset + 'ms)');
 
-                // TODO send sync to remote via player updates?
-                //remote.send(Network.Server.Ping, [ping.ping, ping.offset]);
+                if (remote.player) {
+                    remote.player.setPing(value);
+                    this.send(Network.Player.Ping, [remote.player.id, value]);
+                }
 
                 // Switch to sliding window buffer
                 ping.sliding = true;
 
                 // Schedule periodic pings from here on out
-                setTimeout(
+                ping.timeout = setTimeout(
                     this._sendPing.bind(this, Date.now(), remote, time),
                     Network.Ping.Interval
                 );
@@ -153,27 +183,6 @@ var Network = Class(function(parent) {
     },
 
 
-    // Getters / Setters ------------------------------------------------------
-    getStats: function() {
-
-        var stats = {
-            bytesSend: 0,
-            bytesReceived: 0
-        };
-
-        this._remotes.each(function(remote) {
-            stats.bytesSend += remote.bytesSend;
-            stats.bytesReceived += remote.bytesReceived;
-            remote.bytesSend = 0;
-            remote.bytesReceived = 0;
-
-        }, this);
-
-        return stats;
-
-    },
-
-
     // Players ----------------------------------------------------------------
     addPlayer: function(remote, data) {
 
@@ -217,7 +226,7 @@ var Network = Class(function(parent) {
             rt: new Array(Network.Ping.BufferSize),
             clock: new Array(Network.Ping.BufferSize),
             tick: 0,
-            ping: 0,
+            value: 0,
             offset: 0,
             timeout: null
         };
@@ -247,12 +256,17 @@ var Network = Class(function(parent) {
             this.removePlayer(remote);
             this.parent.close(remote, !closedByRemote);
 
+            console.log('clear timeout');
+            clearTimeout(remote.ping.timeout);
+
             if (closedByRemote) {
                 this.log('Disconnected', remote.toString());
 
             } else {
                 this.log('Kicked', remote.toString());
             }
+
+            remote.reset();
 
         }
 

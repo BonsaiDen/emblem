@@ -3,6 +3,8 @@ var Class = require('./lib/Class').Class,
     IdPool = require('./lib/IdPool').IdPool,
     EntityVector = require('./EntityVector').EntityVector;
 
+"use strict";
+
 
 // Networked Entity Logic -----------------------------------------------------
 var Entity = Class(function(x, y, r, speed, angular, radius) {
@@ -151,7 +153,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
 
     // Methods ----------------------------------------------------------------
-    update: function(time, u) {
+    update: function(type, time, u) {
 
         this._lastRenderVector.setFromVector(this.vector);
         this._tick = (this._tick + 1) % Entity.StateBufferSize;

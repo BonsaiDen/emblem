@@ -1,6 +1,8 @@
 // Dependencies ---------------------------------------------------------------
 var Class = require('./lib/Class').Class;
 
+"use strict";
+
 
 // Abstract Game Component Class ----------------------------------------------
 var Component = Class(function(ident, parent) {

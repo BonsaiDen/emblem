@@ -3,6 +3,8 @@ var Class = require('./lib/Class').Class,
     requestAnimationFrame = require('./lib/animationFrame').requestAnimationFrame,
     Component = require('./Component').Component;
 
+"use strict";
+
 
 // Shared Game Loop Implementation --------------------------------------------
 var Loop = Class(function(parent, fps, update, render, scope) {

@@ -3,6 +3,8 @@ var Class = require('../shared/lib/Class').Class,
     BaseEntityManager = require('../shared/EntityManager').EntityManager,
     Network = require('./Network').Network;
 
+"use strict";
+
 
 // Server Side Entity State Manager -------------------------------------------
 var EntityManager = Class(function(parent) {
