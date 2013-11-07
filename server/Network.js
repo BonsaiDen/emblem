@@ -191,24 +191,48 @@ var Network = Class(function(parent) {
 
             // Send player to remotes
             this._remotes.each(function(other) {
-                other.send([Network.Player.Join.Remote, player.getState(true)]);
+                other.send([
+                    Network.Player.Join.Remote,
+                    player.getState(Network.State.Add)
+                ]);
             });
 
             // Send player to itself
-            player.send(Network.Player.Join.Local, player.getState(true));
+            remote.send([
+                Network.Player.Join.Local,
+                player.getState(Network.State.Add)
+            ]);
 
             remote.player = player;
             this._remotes.add(remote);
+
         }
+
+    },
+
+    updatePlayer: function(player) {
+
+        this._remotes.each(function(other) {
+            other.send([
+                Network.Player.Update,
+                player.getState(Network.State.Update)
+            ]);
+        });
 
     },
 
     removePlayer: function(remote) {
 
         if (remote.player) {
+
             this.parent.removePlayer(remote.player);
-            this.socket.send([Network.Player.Leave, remote.player.getState()]);
+            this.socket.send([
+                Network.Player.Leave,
+                remote.player.getState(Network.State.Remove)
+            ]);
+
             remote.player = null;
+
         }
 
     },

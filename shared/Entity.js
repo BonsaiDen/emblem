@@ -1,7 +1,8 @@
 // Dependencies ---------------------------------------------------------------
 var Class = require('./lib/Class').Class,
     IdPool = require('./lib/IdPool').IdPool,
-    EntityVector = require('./EntityVector').EntityVector;
+    EntityVector = require('./EntityVector').EntityVector,
+    Network = require('./Network').Network;
 
 "use strict";
 
@@ -279,17 +280,17 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
     bufferState: function() {
 
-        this._stateBuffer.push(this.getState(false));
+        this._stateBuffer.push(this.getState(false, Network.State.Update));
         if (this._stateBuffer.length > Entity.StateBufferSize) {
             this._stateBuffer.shift();
         }
 
     },
 
-    getState: function(remote, full) {
+    getState: function(toRemote, type) {
 
         // Full state
-        if (full) {
+        if (type === Network.State.Add) {
             return [
                 this.id,
                 this._tick,
@@ -304,19 +305,32 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
                 this._owner ? this._owner.id : null
             ];
 
-        // Delayed state when sending from server to client
-        } else if (remote) {
+        } else if (type === Network.State.Remove) {
+            return [this.id];
 
-            var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
-            if (state) {
-                return state;
+        // Delayed state when sending to a remote
+        } else if (toRemote) {
+
+            // Server side only entities (i.e. uncontrolled entities)
+            // don't need to send delayed states???
+            // TODO really?
+            // yep really... TODO test it
+            if (this._owner === null) {
+                return this.getState(false, Network.State.Update);
 
             } else {
-                return this.getState(false, false);
+                var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
+                if (state) {
+                    return state;
+
+                } else {
+                    return this.getState(false, Network.State.Update);
+                }
+
             }
 
         // Update state
-        } else {
+        } else if (type === Network.State.Update) {
             return [
                 this.id,
                 this._tick,

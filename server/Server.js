@@ -83,6 +83,12 @@ var Server = Class(function(gameClass) {
     },
 
 
+    // Players ----------------------------------------------------------------
+    updatePlayerState: function(player) {
+        this.network.updatePlayer(player);
+    },
+
+
     // Entities ---------------------------------------------------------------
     addEntity: function(entity) {
         this.entityManager.addEntity(entity);

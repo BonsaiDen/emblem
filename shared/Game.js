@@ -100,6 +100,10 @@ var Game = Class(function(parent) {
 
     },
 
+    updatePlayerState: function(player) {
+        this.parent.updatePlayerState(player);
+    },
+
     removePlayer: function(id) {
         var player = this.players.remove(id);
         if (player) {

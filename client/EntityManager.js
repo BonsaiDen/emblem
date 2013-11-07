@@ -50,7 +50,7 @@ var EntityManager = Class(function(parent) {
 
     removeEntity: function(state) {
 
-        var entity = this.entities.get(state);
+        var entity = this.entities.get(state[0]);
         if (this.entities.remove(entity)) {
             this.log('Remove Entity', entity);
             entity.destroy();
@@ -62,7 +62,10 @@ var EntityManager = Class(function(parent) {
     send: function() {
         this.entities.each(function(entity) {
             if (!entity.isRemote()) {
-                this.parent.send(Network.Entity.ClientUpdate, entity.getState());
+                this.parent.send(
+                    Network.Entity.ClientUpdate,
+                    entity.getState(false, Network.State.Update)
+                );
             }
 
         }, this);

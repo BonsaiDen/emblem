@@ -93,6 +93,12 @@ var Client = Class(function(gameClass) {
     close: function(remote, closedByServer) {
         Emblem.close(this, remote, closedByServer);
         this.disconnect();
+    },
+
+
+    // Players ----------------------------------------------------------------
+    updatePlayerState: function(player, state) {
+        player.setState(state);
     }
 
 });

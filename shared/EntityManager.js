@@ -24,7 +24,10 @@ var EntityManager = Class(function(parent) {
 
     init: function(remote) {
         this.entities.each(function(entity) {
-            remote.send([Network.Entity.Add, entity.getState(true, true)]);
+            remote.send([
+                Network.Entity.Add,
+                entity.getState(true, Network.State.Add)
+            ]);
         });
     },
 

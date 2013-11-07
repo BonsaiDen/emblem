@@ -67,6 +67,7 @@ var Network = Class(function(parent) {
     bufferedMessage: function(client, type, data) {
 
         // Player
+        var player;
         if (type === Network.Player.Join.Local) {
             this.parent.addPlayer(data, false);
 
@@ -74,8 +75,16 @@ var Network = Class(function(parent) {
             this.parent.addPlayer(data, true);
 
         } else if (type === Network.Player.Ping) {
-            var player = this.parent.getPlayerById(data[0]);
-            player && player.setPing(data[1]);
+            player = this.parent.getPlayerById(data[0]);
+            if (player) {
+                player.setPing(data[1]);
+            }
+
+        } else if (type === Network.Player.Update) {
+            player = this.parent.getPlayerById(data[0]);
+            if (player) {
+                this.parent.updatePlayerState(player, data);
+            }
 
         } else if (type === Network.Player.Leave) {
             this.parent.removePlayer(data[0]);

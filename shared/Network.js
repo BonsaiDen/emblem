@@ -18,7 +18,7 @@ var Network = Class(function(parent) {
 
 }, Component, {
 
-    // Statics ----------------------------------------------------------------
+    // Network Codes ----------------------------------------------------------
     $Entity: {
         Add: 0,
         Owner: 1,
@@ -51,6 +51,13 @@ var Network = Class(function(parent) {
     $Client: {
         Ping: 6,
         Login: 30
+    },
+
+    // Statics ----------------------------------------------------------------
+    $State:  {
+        Add: 1,
+        Update: 2,
+        Remove: 3
     },
 
     $Ping: {

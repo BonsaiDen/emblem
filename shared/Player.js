@@ -91,7 +91,11 @@ var Player = Class(function(parent, isRemote) {
         this.id = state[0];
     },
 
-    getState: function() {
+    updateState: function() {
+        this.parent.updatePlayerState(this);
+    },
+
+    getState: function(type) {
         return [this.id];
     },
 

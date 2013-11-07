@@ -15,10 +15,16 @@ var EntityManager = Class(function(parent) {
     addEntity: function(entity) {
 
         if (this.entities.add(entity)) {
+
             entity.parent = this;
-            this.messages.push([Network.Entity.Add, entity.getState(true, true)]);
+            this.messages.push([
+                Network.Entity.Add,
+                entity.getState(true, Network.State.Add)
+            ]);
+
             this.log('Entity added', entity);
             return entity;
+
         }
 
     },
@@ -46,7 +52,11 @@ var EntityManager = Class(function(parent) {
 
         if (this.entities.remove(entity)) {
 
-            this.messages.push([Network.Entity.Remove, entity.id]);
+            this.messages.push([
+                Network.Entity.Remove,
+                entity.getState(true, Network.State.Remove)
+            ]);
+
             this.log('Entity removed', entity);
             entity.destroy();
             return entity;
@@ -59,7 +69,11 @@ var EntityManager = Class(function(parent) {
 
         this.entities.each(function(entity) {
             entity.bufferState();
-            this.messages.push([Network.Entity.Update, entity.getState(true)]);
+            this.messages.push([
+                Network.Entity.Update,
+                // TODO only toRemote=true if the entity has a owner
+                entity.getState(true, Network.State.Update)
+            ]);
 
         }, this);
 
