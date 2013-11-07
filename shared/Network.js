@@ -1,6 +1,7 @@
 // Dependencies ---------------------------------------------------------------
 var Class = require('./lib/Class').Class,
-    Component = require('./Component').Component;
+    Component = require('./Component').Component,
+    Loop = require('./Loop').Loop;
 
 "use strict";
 
@@ -73,11 +74,17 @@ var Network = Class(function(parent) {
         this.messageQueue = [];
     },
 
-    update: function() {
-        for(var i = 0, l = this.messageQueue.length; i < l; i++) {
-            this.bufferedMessage.apply(this, this.messageQueue[i]);
+    update: function(type) {
+
+        if (type === Loop.Update.Normal) {
+
+            for(var i = 0, l = this.messageQueue.length; i < l; i++) {
+                this.bufferedMessage.apply(this, this.messageQueue[i]);
+            }
+            this.messageQueue.length = 0;
+
         }
-        this.messageQueue.length = 0;
+
     },
 
     destroy: function() {

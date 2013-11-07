@@ -12,6 +12,8 @@ var Game = Class(function(parent) {
 
     Component(this, 'Game', parent);
 
+    this.id = -1;
+
     // List of Players
     this.players = null;
 

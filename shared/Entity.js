@@ -91,6 +91,8 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
             if (this._owner !== owner) {
 
+                //this._isRemote = !!owner;
+
                 if (this._owner) {
                     this._owner.removeEntity(this);
                 }

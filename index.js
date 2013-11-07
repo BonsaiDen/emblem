@@ -8,6 +8,7 @@ exports.Network = require('./shared/Network').Network;
 exports.Entity = require('./shared/Entity').Entity;
 exports.EntityVector = require('./shared/EntityVector').EntityVector;
 exports.Player = require('./shared/Player').Player;
+exports.Loop = require('./shared/Loop').Loop;
 exports.Game = require('./shared/Game').Game;
 
 // Emblem Core ----------------------------------------------------------------

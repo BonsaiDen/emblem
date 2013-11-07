@@ -72,9 +72,9 @@ var Loop = Class(function(parent, fps, update, render, scope) {
 
             this.tickBuffer += time - this.lastUpdate;
 
-            if (this.tickBuffer > 1000) {
-                this.updateCallback.call(this.scope, Loop.Update.Tick, passed, u);
-                this.tickBuffer = 0;
+            if (this.tickBuffer >= 1000) {
+                this.updateCallback.call(this.scope, Loop.Update.Tick, passed, 0);
+                this.tickBuffer -= 1000;
             }
 
             this.lastUpdate = time;

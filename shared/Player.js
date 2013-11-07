@@ -35,6 +35,10 @@ var Player = Class(function(parent, isRemote) {
         this.log('Init Player', this, data);
     },
 
+    update: function(type, time, u) {
+
+    },
+
     message: function(type, data) {
         this.log('Message', type, data);
     },

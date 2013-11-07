@@ -72,7 +72,7 @@ var EntityManager = Class(function(parent) {
             this.messages.push([
                 Network.Entity.Update,
                 // TODO only toRemote=true if the entity has a owner
-                entity.getState(true, Network.State.Update)
+                entity.getState(!!entity._owner, Network.State.Update)
             ]);
 
         }, this);

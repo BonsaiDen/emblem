@@ -44,10 +44,11 @@ var Emblem = Class(function(gameClass) {
 
     update: function(type, time, u) {
 
+        this.network.update(type, time, u);
+        this.entityManager.update(type, time, u);
+        this.game.update(type, time, u);
+
         if (type === Loop.Update.Normal) {
-            this.network.update(type, time, u);
-            this.entityManager.update(type, time, u);
-            this.game.update(type, time, u);
             this.entityManager.send();
         }
 
