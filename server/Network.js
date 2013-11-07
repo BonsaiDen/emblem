@@ -256,7 +256,6 @@ var Network = Class(function(parent) {
             this.removePlayer(remote);
             this.parent.close(remote, !closedByRemote);
 
-            console.log('clear timeout');
             clearTimeout(remote.ping.timeout);
 
             if (closedByRemote) {

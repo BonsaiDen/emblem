@@ -1,6 +1,7 @@
 // Dependencies ---------------------------------------------------------------
 var Class = require('../shared/lib/Class').Class,
     BaseNetwork = require('../shared/Network').Network,
+    Loop = require('../shared/Loop').Loop,
 
     // External
     lithium = require('lithium/client/lithium').lithium,
@@ -11,7 +12,22 @@ var Class = require('../shared/lib/Class').Class,
 
 // Client Side Network Abstraction --------------------------------------------
 var Network = Class(function(parent) {
+
     BaseNetwork(this, parent);
+
+    this._stats = {
+
+        server: {
+            send: 0,
+            received: 0
+        },
+
+        client: {
+            send: 0,
+            received: 0
+        }
+
+    };
 
 }, BaseNetwork, {
 
@@ -35,6 +51,19 @@ var Network = Class(function(parent) {
 
     },
 
+    update: function(type, time, u) {
+
+        if (type === Loop.Update.Tick) {
+            this._stats.client.send = this.socket.bytesSend;
+            this._stats.client.received = this.socket.bytesReceived;
+            this.socket.bytesSend = 0;
+            this.socket.bytesReceived = 0;
+        }
+
+        BaseNetwork.update(this, type, u);
+
+    },
+
     bufferedMessage: function(client, type, data) {
 
         // Player
@@ -52,7 +81,8 @@ var Network = Class(function(parent) {
             this.parent.removePlayer(data[0]);
 
         } else if (type === Network.Server.Stats) {
-            console.log(data);
+            this._stats.server.send = data[0];
+            this._stats.server.received = data[1];
 
         // Other
         } else {
