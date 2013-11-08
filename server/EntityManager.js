@@ -17,6 +17,7 @@ var EntityManager = Class(function(parent) {
         if (this.entities.add(entity)) {
 
             entity.parent = this;
+
             this.messages.push([
                 Network.Entity.Add,
                 entity.getState(true, Network.State.Add)
@@ -72,7 +73,7 @@ var EntityManager = Class(function(parent) {
             this.messages.push([
                 Network.Entity.Update,
                 // TODO only toRemote=true if the entity has a owner
-                entity.getState(!!entity._owner, Network.State.Update)
+                entity.getState(true, Network.State.Update)
             ]);
 
         }, this);

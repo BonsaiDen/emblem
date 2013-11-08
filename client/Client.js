@@ -18,14 +18,21 @@ var Client = Class(function(gameClass) {
     this.networkClass = Network;
     this.entityManagerClass = EntityManager;
 
+    // Time offset correction
+    this._connectTime = 0;
+
 }, Emblem, {
 
     // Methods ----------------------------------------------------------------
     connect: function(port, host) {
+        this._connectTime = Date.now();
         this.init(port, host, null);
     },
 
-    start: function(state) {
+    start: function(state, serverOffset) {
+
+        // Correct server loop offset by half of connect roundtrip
+        serverOffset += Math.floor((Date.now() - this._connectTime) / 2);
 
         this.game.setState(state);
         this.game.init();
@@ -37,7 +44,8 @@ var Client = Class(function(gameClass) {
             this.render.bind(this),
             this
         );
-        this.loop.start();
+
+        this.loop.start(serverOffset);
 
     },
 

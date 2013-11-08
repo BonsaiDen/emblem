@@ -43,7 +43,7 @@ var EntityManager = Class(function(parent) {
 
         var entity = this.entities.get(state[0]);
         if (entity) {
-            entity.updateState(state);
+            entity.updateState(state, !entity.isRemote());
         }
 
     },
@@ -62,6 +62,7 @@ var EntityManager = Class(function(parent) {
     send: function() {
         this.entities.each(function(entity) {
             if (!entity.isRemote()) {
+                entity.bufferState();
                 this.parent.send(
                     Network.Entity.ClientUpdate,
                     entity.getState(false, Network.State.Update)

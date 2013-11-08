@@ -36,12 +36,14 @@ var Loop = Class(function(parent, fps, update, render, scope) {
 
 
     // Methods ----------------------------------------------------------------
-    start: function() {
+    start: function(offset) {
+
+        offset = offset || 0;
 
         this.isRunning = true;
         this.interval = setInterval(this.update.bind(this), this.tps / 2);
 
-        this.startTime = Date.now();
+        this.startTime = Date.now() - offset;
         this.lastUpdate = this.startTime;
         this.lastRender = this.startTime;
         this.tickBuffer = 0;
@@ -99,6 +101,10 @@ var Loop = Class(function(parent, fps, update, render, scope) {
 
         }
 
+    },
+
+    getTime: function() {
+        return Date.now() - this.startTime;
     }
 
 });

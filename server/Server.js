@@ -59,7 +59,14 @@ var Server = Class(function(gameClass) {
     // Network ----------------------------------------------------------------
     connection: function(remote) {
 
-        remote.send([Network.Server.Init, this.getState()]);
+        // Send Server state and loop time to client to correct the offset
+        // We send two parts here to work around the limitations of the binary
+        // protocol
+        var lt = this.loop.getTime();
+        remote.send([
+            Network.Server.Init,
+            [this.getState(), Math.floor(lt / 10000), lt % 10000]
+        ]);
 
         this.getPlayers().each(function(player) {
             remote.send([Network.Player.Join.Remote, player.getState(true)]);

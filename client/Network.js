@@ -116,7 +116,7 @@ var Network = Class(function(parent) {
     message: function(remote, type, data) {
 
         if (type === Network.Server.Init) {
-            this.parent.start(data);
+            this.parent.start(data[0], data[1] * 10000 + data[2]);
 
         // Ping
         } else if (type === Network.Server.Ping) {

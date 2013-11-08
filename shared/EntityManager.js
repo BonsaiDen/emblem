@@ -32,9 +32,12 @@ var EntityManager = Class(function(parent) {
     },
 
     update: function(type, time, u) {
+
         this.entities.each(function(entity) {
             entity.update(type, time, u);
-        });
+
+        }, this);
+
     },
 
     render: function(time, u) {
@@ -54,6 +57,7 @@ var EntityManager = Class(function(parent) {
         this.messages.length = 0;
 
     },
+
 
     // Getters / Setters ------------------------------------------------------
     isServer: function() {

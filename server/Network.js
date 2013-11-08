@@ -31,7 +31,8 @@ var Network = Class(function(parent) {
         this.socket = new lithium.Server(
             this.connection.bind(this),
             BISON.encode,
-            BISON.decode
+            BISON.decode,
+            4096
         );
 
         this.socket.listen(port, host);
@@ -103,6 +104,7 @@ var Network = Class(function(parent) {
 
             // Fill up the initial buffer
             if (!ping.sliding && ping.tick < Network.Ping.BufferSize - 1) {
+                console.log('fill ping buffer');
                 remote.send([Network.Server.Ping, time]);
 
             // Once the buffer is full calculate ping and clock offset from

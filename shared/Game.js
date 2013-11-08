@@ -12,8 +12,6 @@ var Game = Class(function(parent) {
 
     Component(this, 'Game', parent);
 
-    this.id = -1;
-
     // List of Players
     this.players = null;
 
@@ -44,7 +42,7 @@ var Game = Class(function(parent) {
 
     destroy: function() {
         this.config = null;
-        this.players.destroy();
+        this.players && this.players.destroy();
     },
 
 

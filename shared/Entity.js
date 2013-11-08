@@ -63,6 +63,10 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     // Owner of this entity
     this._owner = null;
 
+    // State of the entity before it is projected, this is used to revert
+    // to the current state after the projection
+    this._projectedState = null;
+
 }, {
 
     // Statics ----------------------------------------------------------------
@@ -91,8 +95,6 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
             if (this._owner !== owner) {
 
-                //this._isRemote = !!owner;
-
                 if (this._owner) {
                     this._owner.removeEntity(this);
                 }
@@ -119,8 +121,61 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
     },
 
-    setInputeState: function(inputState) {
+    setInputState: function(inputState) {
         this._inputState = inputState;
+    },
+
+    projectState: function(block, scope) {
+
+        var entity = this,
+            entities = this.parent.getEntities();
+
+
+        // Calculate tick difference between client and remote
+        var td = this._tick - this._remoteTick;
+        if (td < 0) {
+            td += Entity.StateBufferSize;
+        }
+
+        //var ping = entity.getOwner().getPing();
+        var pingDelay = Math.floor(this.getOwner().getPing() / 2 / (1000 / this.getGame().getFps()));
+        var offset = (Entity.StateDelay + td + pingDelay) - 1;
+
+        console.log(Entity.StateDelay, td, pingDelay);
+
+        // Set states of all other entities to the expected, matching client state
+        entities.each(function(other) {
+
+            if (other !== entity) {
+                other._projectedState = other.getState(false, Network.State.Add);
+                other.setState(other._stateBuffer[other._stateBuffer.length - offset]);
+            }
+
+        });
+
+        // Call the passed function which should handle things like hit detection
+        block.call(scope || null, entities);
+
+        // Reset the states of the other entities to their previousState
+        entities.each(function(other) {
+            if (other !== entity) {
+                other.setState(other._projectedState);
+                other._projectedState = null;
+            }
+        });
+
+    },
+
+    remove: function() {
+        if (this.parent.isServer()) {
+            this.parent.removeEntity(this);
+        }
+    },
+
+
+    // Getter -----------------------------------------------------------------
+    getInputState: function() {
+        return this._inputState;
     },
 
     getOwner: function() {
@@ -132,26 +187,8 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     },
 
     isRemote: function() {
-        return this._isRemote;
-    },
-
-    remove: function() {
-        if (this.parent.isServer()) {
-            this.parent.removeEntity(this);
-        }
-    },
-
-    projectState: function(block, scope) {
-
-        var frameDiff = this._tick - this._remoteTick;
-        if (frameDiff < 0) {
-            frameDiff += Entity.StateBufferSize;
-        }
-
-        // TODO get tick diff between local and remote
-        // TODO Temporarily set all entities to the calculated remove state
-        // run block and pass entities
-        // TODO reset the entities (make sure they are still valid though!)
+        return this.parent.isServer() ? this._isRemote && this._owner
+                                      : this._isRemote;
     },
 
 
@@ -159,10 +196,10 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     update: function(type, time, u) {
 
         this._lastRenderVector.setFromVector(this.vector);
-        this._tick = (this._tick + 1) % Entity.StateBufferSize;
+        this._tick = Math.round(time / 33) % Entity.StateBufferSize;
 
         var vel;
-        if (this._isRemote) {
+        if (this.isRemote()) {
 
             // Calculate local velocity change
             vel = this.vector.subtract(this._remoteVector);
@@ -233,13 +270,31 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
         this._remoteTick = state[1];
         this._remoteVector.set(state[3], state[4], state[2]);
 
+        // Set input state for remotes but don't overwrite local input state
+        if (this.isRemote()) {
+            this._inputState = state[5];
+        }
+
         if (correctPosition) {
 
+            // Get correct from ping
+            var ping = this.getOwner().getPing(),
+                td = Math.max(Math.round(ping / (1000 / this.getGame().getFps())), 1);
+
+            // Until we have a ping we cannot correct he position and the client
+            // has to trust himself
+            if (ping === 0) {
+                return;
+            }
+
             // See how much the local states diverge from the remote position
-            var minDistance = 10000000,
+            var minDistance = 1000000,
                 index = -1;
 
-            for(var i = 0; i < this._stateBuffer.length; i++) {
+            // The more of the buffer we iterate, the higher the time needed
+            // until a correction happens
+            var l = this._stateBuffer.length;
+            for(var i = Math.max(l - Math.max(td * 3, 8), 0); i < l; i++) {
 
                 var local = this._stateBuffer[i],
                     dx = (local[3] - state[3]),
@@ -255,19 +310,15 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
             if (minDistance > 0) {
 
-                // Calculate the number of frames of difference between
-                // client and server
-                var frameDiff = this._tick - this._remoteTick;
-                if (frameDiff < 0) {
-                    frameDiff += Entity.StateBufferSize;
-                }
-
-                frameDiff = Math.max(frameDiff, 1);
+                td = Math.max(td, 1);
 
                 // If the distance it outside the error range
-                // we ran into heavy lag or local cheating
-                // in either case, reset the position to the server state
-                if (minDistance > Entity.ErrorRange * frameDiff) {
+                // we ran into lag or local cheating
+                // in either case, reset the position to the last known
+                // server state
+                if (minDistance > Entity.ErrorRange * td) {
+                    console.log('====================== CORRECT POSITION ===========================');
+                    console.log(minDistance, Entity.ErrorRange * td, td);
                     this.vector.x = state[3];
                     this.vector.y = state[4];
                     this.velocity.x = 0;
@@ -314,13 +365,11 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
         } else if (toRemote) {
 
             // Server side only entities (i.e. uncontrolled entities)
-            // don't need to send delayed states???
-            // TODO really?
-            // yep really... TODO test it
-            if (this._owner === null) {
-                return this.getState(false, Network.State.Update);
+            // don't need to send delayed states
+            //if (this._owner === null) {
+                //return this.getState(false, Network.State.Update);
 
-            } else {
+            //} else {
                 var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
                 if (state) {
                     return state;
@@ -329,7 +378,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
                     return this.getState(false, Network.State.Update);
                 }
 
-            }
+            //}
 
         // Update state
         } else if (type === Network.State.Update) {
@@ -354,6 +403,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
         // Full state only
         if (state.length > 6) {
+            this._tick = state[1];
             this.speed = state[6];
             this.angular = state[7];
             this.radius = state[8];
@@ -364,7 +414,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     },
 
     toString: function() {
-        var remote = this._isRemote ? '(Remote)' : '(Local)';
+        var remote = this.isRemote() ? '(Remote)' : '(Local)';
         return '[Entity #' + this.id + ' ' + remote + ']';
     }
 
