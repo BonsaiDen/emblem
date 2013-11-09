@@ -75,7 +75,7 @@ HashList.prototype = {
             return obj;
 
         } else {
-            console.warn('(HashList) Add of contained object', obj);
+            console.error('(HashList) Add of contained object', obj);
             return false;
         }
 
@@ -106,7 +106,7 @@ HashList.prototype = {
             return obj;
 
         } else {
-            console.warn('(HashList) Remove of uncontained object', obj);
+            console.error('(HashList) Remove of uncontained object', obj);
             return false;
         }
 
