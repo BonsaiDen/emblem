@@ -104,7 +104,7 @@ var Network = Class(function(parent) {
 
             // Fill up the initial buffer
             if (!ping.sliding && ping.tick < Network.Ping.BufferSize - 1) {
-                console.log('fill ping buffer');
+                // TODO send the ping value to the client as early as possible
                 remote.send([Network.Server.Ping, time]);
 
             // Once the buffer is full calculate ping and clock offset from

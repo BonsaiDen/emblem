@@ -130,18 +130,12 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
         var entity = this,
             entities = this.parent.getEntities();
 
+        // TODO if we can get a more up to date / accurate RT value this will
+        // become more accurate
+        var rtDelay = Math.floor(this.getOwner().getPing() * 2 / (1000 / this.getGame().getFps())),
+            offset = (Entity.StateDelay + rtDelay);
 
-        // Calculate tick difference between client and remote
-        var td = this._tick - this._remoteTick;
-        if (td < 0) {
-            td += Entity.StateBufferSize;
-        }
-
-        //var ping = entity.getOwner().getPing();
-        var pingDelay = Math.floor(this.getOwner().getPing() / 2 / (1000 / this.getGame().getFps()));
-        var offset = (Entity.StateDelay + td + pingDelay) - 1;
-
-        console.log(Entity.StateDelay, td, pingDelay);
+        //console.log(rtDelay, Entity.StateDelay);
 
         // Set states of all other entities to the expected, matching client state
         entities.each(function(other) {
