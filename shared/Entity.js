@@ -41,10 +41,6 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     // Custom Type Identifier of the entity
     this._type = Entity.Type;
 
-    // Synchronization tick mapping to the state buffer index
-    this._tick = 0;
-    this._remoteTick = 0;
-
     // List of the last Entity.StateBufferSize serialized states
     this._stateBuffer = [];
 
@@ -190,7 +186,6 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     update: function(type, time, u) {
 
         this._lastRenderVector.setFromVector(this.vector);
-        this._tick = Math.round(time / 33) % Entity.StateBufferSize;
 
         var vel;
         if (this.isRemote()) {
@@ -261,12 +256,11 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     // Network ----------------------------------------------------------------
     updateState: function(state, correctPosition) {
 
-        this._remoteTick = state[1];
         this._remoteVector.set(state[3], state[4], state[2]);
 
         // Set input state for remotes but don't overwrite local input state
         if (this.isRemote()) {
-            this._inputState = state[5];
+            this._inputState = state[1];
         }
 
         if (correctPosition) {
@@ -340,11 +334,10 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
         if (type === Network.State.Add) {
             return [
                 this.id,
-                this._tick,
+                this._inputState,
                 Math.round(this.vector.r),
                 Math.round(this.vector.x),
                 Math.round(this.vector.y),
-                this._inputState,
                 this.speed,
                 this.angular,
                 this.radius,
@@ -357,32 +350,22 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
         // Delayed state when sending to a remote
         } else if (toRemote) {
+            var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
+            if (state) {
+                return state;
 
-            // Server side only entities (i.e. uncontrolled entities)
-            // don't need to send delayed states
-            //if (this._owner === null) {
-                //return this.getState(false, Network.State.Update);
-
-            //} else {
-                var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
-                if (state) {
-                    return state;
-
-                } else {
-                    return this.getState(false, Network.State.Update);
-                }
-
-            //}
+            } else {
+                return this.getState(false, Network.State.Update);
+            }
 
         // Update state
         } else if (type === Network.State.Update) {
             return [
                 this.id,
-                this._tick,
+                this._inputState,
                 Math.round(this.vector.r),
                 Math.round(this.vector.x),
-                Math.round(this.vector.y),
-                this._inputState
+                Math.round(this.vector.y)
             ];
         }
 
@@ -391,18 +374,17 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     setState: function(state) {
 
         this.id = state[0];
+        this._inputState = state[1];
         this.vector.set(state[3], state[4], state[2]);
         this._remoteVector.set(state[3], state[4], state[2]);
-        this._inputState = state[5];
 
-        // Full state only
-        if (state.length > 6) {
-            this._tick = state[1];
-            this.speed = state[6];
-            this.angular = state[7];
-            this.radius = state[8];
-            this._type = state[9];
-            this._owner = state[10] !== null ? this.parent.getOwnerById(state[10]) : null;
+        // Full state
+        if (state.length > 5) {
+            this.speed = state[5];
+            this.angular = state[6];
+            this.radius = state[7];
+            this._type = state[8];
+            this._owner = state[9] !== null ? this.parent.getOwnerById(state[9]) : null;
         }
 
     },

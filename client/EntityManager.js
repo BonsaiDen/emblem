@@ -14,7 +14,7 @@ var EntityManager = Class(function(parent) {
 
     addEntity: function(state) {
 
-        var entityClass = this.parent.getEntityClassFromType(state[9]),
+        var entityClass = this.parent.getEntityClassFromType(state[8]),
             entity = new entityClass();
 
         entity.parent = this;
