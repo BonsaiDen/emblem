@@ -41,26 +41,31 @@ var Component = Class(function(ident, parent) {
     log: function() {
 
         var msg = Array.prototype.slice.call(arguments);
+        console.log.apply(console, this._log(msg).map(function(val) {
+
+            if (val && val.constructor === Object) {
+                return val;
+
+            } else if (val) {
+                return val.toString();
+
+            } else {
+                return val;
+            }
+
+        }));
+
+    },
+
+    _log: function(msg) {
+
         msg.unshift('[' + this.ident + ' #' + this.id + ']');
 
         if (this.parent) {
-            this.parent.log.apply(this.parent, msg);
-
-        } else {
-            console.log.apply(console, msg.map(function(val) {
-
-                if (val && val.constructor === Object) {
-                    return val;
-
-                } else if (val) {
-                    return val.toString();
-
-                } else {
-                    return val;
-                }
-
-            }));
+            this.parent._log(msg);
         }
+
+        return msg;
 
     },
 
