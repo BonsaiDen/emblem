@@ -23,29 +23,6 @@
 
     "use strict";
 
-    /**
-      * Creates an unbound version of a member function.
-      *
-      * In case of a static field the call will translate into:
-      *
-      *     field.apply(clas, arguments)
-      *
-      * Otherwise we create a super version which can be
-      * passed an additional "this" arguments in front of
-      * it's normal arguments via:
-      *
-      *     Function.call.apply(field, argumments)
-      *
-      * Which effectively results in:
-      *
-      *     field.call(this, arguments)
-      */
-    function bound(context, callee) {
-        return function() {
-            return callee.apply(context, arguments);
-        };
-    }
-
     function Class(ctor) {
 
         // Check whether the ctor function is in fact another class and not
@@ -133,15 +110,16 @@
                         && !(ctor && ctor.prototype === props)) {
 
                         key = key.substring(1);
-                        clas[key] = isFunction ? bound(clas, field) : field;
+                        clas[key] = isFunction ? field.bind(clas) : field;
 
                     // If it's not static add it to the prototype chain
                     } else {
                         prototype[key] = field;
 
-                        // Create unbound versions of the methods
+                        // Create a unbound version for methods
                         if (isFunction) {
-                            clas[key] = bound(field, Function.call);
+                            // context.call.bind(context);
+                            clas[key] = Function.call.bind(field);
                         }
 
                     }
