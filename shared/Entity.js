@@ -41,8 +41,10 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     // Custom Type Identifier of the entity
     this._type = Entity.Type;
 
-    // List of the last Entity.StateBufferSize serialized states
-    this._stateBuffer = [];
+    // Circular buffer of the last X states of the entity
+    this._stateBuffer = new Array(Entity.StateBufferSize);
+    this._stateBufferIndex = 0;
+    this._stateBufferCache = 0;
 
     // Input State (e.g. pressed buttons / keys )
     this._inputState = 0;
@@ -70,7 +72,7 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
     // How many states to buffer the buffered state durration in milliseconds is
     // 1000 / FPS * StateBufferSize
-    $StateBufferSize: 30,
+    $StateBufferSize: 20,
 
     // How many frames the clients will be behind with their state of
     // remote entities
@@ -138,7 +140,8 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
             if (other !== entity) {
                 other._projectedState = other.getState(false, Network.State.Add);
-                other.setState(other._stateBuffer[other._stateBuffer.length - offset]);
+                other.setState(other.getBufferedState(offset));
+                //other.setState(other._stateBuffer[other._stateBuffer.length - offset]);
             }
 
         });
@@ -238,22 +241,24 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
         this.id = null;
         this.vector = null;
-        this._remoteVector = null;
         this.renderVector = null;
-        this._stateBuffer = null;
-        this._lastRenderVector = null;
         this.velocity = null;
-        this._inputState = null;
         this.speed = null;
         this.angular = null;
         this.radius = null;
+
+        this._stateBuffer = null;
+        this._stateBufferIndex = null;
+        this._remoteVector = null;
+        this._lastRenderVector = null;
+        this._inputState = null;
         this._type = null;
         this._owner = null;
 
     },
 
 
-    // Network ----------------------------------------------------------------
+    // Network State Handling -------------------------------------------------
     updateState: function(state, correctPosition) {
 
         this._remoteVector.set(state[3], state[4], state[2]);
@@ -281,10 +286,10 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
             // The more of the buffer we iterate, the higher the time needed
             // until a correction happens
-            var l = this._stateBuffer.length;
-            for(var i = Math.max(l - Math.max(td * 3, 8), 0); i < l; i++) {
+            var l = Math.min(Math.max(td * 3, 8), this._stateBufferCache);
+            for(var i = 1; i < l; i++) {
 
-                var local = this._stateBuffer[i],
+                var local = this.getBufferedState(i),
                     dx = (local[3] - state[3]),
                     dy = (local[4] - state[4]),
                     dist = Math.sqrt(dx * dx + dy * dy);
@@ -320,11 +325,21 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
     },
 
     bufferState: function() {
+        this._stateBuffer[this._stateBufferIndex] = this.getState(false, Network.State.Update);
+        this._stateBufferIndex = (this._stateBufferIndex + 1) % Entity.StateBufferSize;
+        this._stateBufferCache = Math.min(this._stateBufferCache + 1, Entity.StateBufferSize);
+    },
 
-        this._stateBuffer.push(this.getState(false, Network.State.Update));
-        if (this._stateBuffer.length > Entity.StateBufferSize) {
-            this._stateBuffer.shift();
+    getBufferedState: function(offset) {
+
+        offset = Math.min(offset, this._stateBufferCache);
+
+        var index = (this._stateBufferIndex - offset) % Entity.StateBufferSize;
+        if (index < 0) {
+            index += Entity.StateBufferSize;
         }
+
+        return this._stateBuffer[index];
 
     },
 
@@ -350,7 +365,8 @@ var Entity = Class(function(x, y, r, speed, angular, radius) {
 
         // Delayed state when sending to a remote
         } else if (toRemote) {
-            var state = this._stateBuffer[this._stateBuffer.length - 1 - Entity.StateDelay];
+
+            var state = this.getBufferedState(Entity.StateDelay);
             if (state) {
                 return state;
 

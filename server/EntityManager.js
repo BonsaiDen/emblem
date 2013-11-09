@@ -58,6 +58,8 @@ var EntityManager = Class(function(parent) {
                 entity.getState(true, Network.State.Remove)
             ]);
 
+            console.log(this.messages);
+
             this.log('Entity removed', entity);
             entity.destroy();
             return entity;
@@ -69,12 +71,17 @@ var EntityManager = Class(function(parent) {
     send: function() {
 
         this.entities.each(function(entity) {
-            entity.bufferState();
+
+            // Send the delayed state and buffer the current state
             this.messages.push([
                 Network.Entity.Update,
-                // TODO only toRemote=true if the entity has a owner
                 entity.getState(true, Network.State.Update)
             ]);
+
+            // Note: It is important to do it this way around so that we actually
+            // send the currentState - DelayCount BEFORE pushing a new value
+            // to the buffer
+            entity.bufferState();
 
         }, this);
 
