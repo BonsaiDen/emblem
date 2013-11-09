@@ -48,9 +48,8 @@ var EntityManager = Class(function(parent) {
 
     },
 
-    removeEntity: function(state) {
+    removeEntity: function(entity) {
 
-        var entity = this.entities.get(state[0]);
         if (this.entities.remove(entity)) {
             this.log('Remove Entity', entity);
             entity.destroy();

@@ -87,8 +87,11 @@ var Client = Class(function(gameClass) {
             return true;
 
         } else if (type === Network.Entity.Remove) {
-            var removed = this.entityManager.removeEntity(data);
-            removed && this.game.removeEntity(removed);
+            var removed = this.entities.get(data[0]);
+            if (removed ){
+                this.entityManager.removeEntity(removed);
+                this.game.removeEntity(removed);
+            }
             return true;
 
         // Other
